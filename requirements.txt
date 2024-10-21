@@ -1,0 +1,17 @@
+cachetools==5.5.0
+certifi==2024.8.30
+charset-normalizer==3.4.0
+deprecation==2.1.0
+grpcio==1.67.0
+idna==3.10
+packaging==24.1
+protobuf==4.25.5
+PyQt6==6.7.1
+PyQt6-Qt6==6.7.3
+PyQt6_sip==13.8.0
+python-dateutil==2.9.0.post0
+requests==2.32.3
+six==1.16.0
+tinkoff==0.1.1
+tinkoff-investments==0.2.0b107
+urllib3==2.2.3
