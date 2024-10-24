@@ -50,5 +50,5 @@ class StockPortfolio:
         for i in range(len(self.assets)):
             portfolio_str += self.assets[i].__str__()
             portfolio_str += "\n"
-        portfolio_str += f'Total price of portfolio: {self.portfolio_price()}'
+        portfolio_str += f'Total price of portfolio: {round(self.portfolio_price(), 2)}'
         return portfolio_str

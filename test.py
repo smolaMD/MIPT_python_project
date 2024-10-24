@@ -1,4 +1,6 @@
 import sys
+from main import Asset, StockPortfolio
+from assets import SBER, AFLT, MGNT, GMKN
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QApplication,
@@ -24,88 +26,39 @@ from PyQt6.QtWidgets import (
     QTextEdit
 )
 
-class Asset:
-    def __init__(self, name, quantity, price_per_unit):
-        self.name = name
-        self.quantity = quantity
-        self.price_per_unit = price_per_unit
-    
-    def price(self):
-        return self.quantity * self.price_per_unit
-    
-    def __str__(self):
-        return f'{self.name}: {self.quantity} units - {self.price_per_unit} per unit'
-    
-    def __eq__(self, other):
-        if isinstance(other, Asset):
-            return ((self.name == other.name) and (self.quantity == other.quantity) and (self.price_per_unit == other.price_per_unit))
-        return False
-    
-class StockPortfolio:
-
-    def __init__(self):
-        self.assets = []
-
-    def add_asset(self, asset: Asset):
-        for i in range(len(self.assets)):
-            if self.assets[i].name == asset.name:
-                self.assets[i].quantity += asset.quantity
-                return
-        self.assets.append(asset)
-        
-    def remove_asset(self, asset: Asset):
-        for i in range(len(self.assets)):
-            if self.assets[i].name == asset.name:
-                if self.assets[i].quantity > asset.quantity:
-                    self.assets[i].quantity -= asset.quantity
-                elif self.assets[i].quantity < asset.quantity:
-                    print("Not enough assets to sell")
-                elif self.assets[i].quantity == asset.quantity:
-                    self.assets.remove(asset)
-                return
-        print("No asset in portfolio")
-
-    def portfolio_price(self):
-        portfolio_price = 0
-        for i in range(len(self.assets)):
-            portfolio_price += self.assets[i].quantity * self.assets[i].price_per_unit
-        return portfolio_price
-
-    def __str__(self):
-        portfolio_str = "Your portfolio:\n"
-        for i in range(len(self.assets)):
-            portfolio_str += self.assets[i].__str__()
-            portfolio_str += "\n"
-        portfolio_str += f'Total price of portfolio: {self.portfolio_price()}'
-        return portfolio_str
-
 class PortfolioApp(QWidget):
     def __init__(self):
         super().__init__()
         
         self.portfolio = StockPortfolio()
         
-        # Установка заголовка и размеров окна
         self.setWindowTitle("Stock Portfolio Manager")
         self.setGeometry(100, 100, 400, 400)
 
-        # Создание вертикального компоновщика
         layout = QVBoxLayout()
 
-        # Параметры ассета
-        self.name_input = QLineEdit(self)
-        self.name_input.setPlaceholderText("Asset Name")
+        self.name_input = QComboBox(self)
+        self.name_input.addItems(["SBER", "AFLT", "MGNT", "GMKN"])
         layout.addWidget(self.name_input)
 
-        self.quantity_input = QLineEdit(self)
-        self.quantity_input.setPlaceholderText("Quantity")
-        layout.addWidget(self.quantity_input)
+        self.asset_prices = {
+            "SBER": SBER,
+            "AFLT": AFLT,
+            "MGNT": MGNT,
+            "GMKN": GMKN
+        }
 
         self.price_input = QLineEdit(self)
         self.price_input.setPlaceholderText("Price per Unit")
+        self.price_input.setReadOnly(True)
         layout.addWidget(self.price_input)
 
-        # Реализация эдда и ремува
+        self.quantity_input = QLineEdit(self)
+        self.quantity_input.setPlaceholderText("Number of lots (1 lot = 10 stocks)")
+        layout.addWidget(self.quantity_input)
+
+        self.name_input.currentIndexChanged.connect(self.update_price)
+
         self.add_button = QPushButton("Add Asset", self)
         self.add_button.clicked.connect(self.add_asset)
         layout.addWidget(self.add_button)
@@ -114,16 +67,23 @@ class PortfolioApp(QWidget):
         self.remove_button.clicked.connect(self.remove_asset)
         layout.addWidget(self.remove_button)
 
-        # __str__ portfolio
         self.portfolio_display = QTextEdit(self)
         self.portfolio_display.setReadOnly(True)
         layout.addWidget(self.portfolio_display)
 
         self.setLayout(layout)
 
+        self.update_price()
+
+    def update_price(self):
+        name = self.name_input.currentText()
+        price = self.asset_prices.get(name, 0.0)
+        self.price_input.setText(str(price))
+        self.price_input.setPlaceholderText('per unit')
+
     def add_asset(self):
-        name = self.name_input.text()
-        quantity = int(self.quantity_input.text())
+        name = self.name_input.currentText()
+        quantity = int(self.quantity_input.text()) * 10
         price_per_unit = float(self.price_input.text())
         
         asset = Asset(name, quantity, price_per_unit)
