@@ -25,12 +25,20 @@ def GetFigi(ticker : str):
         figi = ticker_df["figi"].iloc[0]
     return figi
 
+"""
+Get asset's FIGI by it's ticker
+"""
+
 def get_price_by_figi(figi_name):
     with Client(TOKEN) as client:
       request = client.market_data.get_order_book(figi=figi_name, depth=1)
       price_Q = request.last_price
       price = price_Q.units + price_Q.nano / (1e9)
       return price
+
+"""
+Get asset's actual price
+"""
 
 SBER = get_price_by_figi(GetFigi("SBER")) # Сбер банк
 AFLT = get_price_by_figi(GetFigi("AFLT")) # Аэрофлот
@@ -53,3 +61,7 @@ CSCO = get_price_by_figi(GetFigi("CSCO")) # Cisco Systems
 ADBE = get_price_by_figi(GetFigi("ADBE")) # Adobe
 PYPL = get_price_by_figi(GetFigi("PYPL")) # PayPal
 TCSG = get_price_by_figi(GetFigi("TCSG")) # ТКС Холдинг
+
+"""
+List of stock's prices
+"""

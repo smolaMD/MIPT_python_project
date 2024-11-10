@@ -16,6 +16,15 @@ from PyQt6.QtWidgets import (
 )
 
 class PortfolioApp(QWidget):
+
+    """
+    Initializes an instance of the PortfolioApp class.
+
+    Sets up the user interface for managing a stock portfolio, including inputs
+    for stock names, prices, and quantities. Initializes the portfolio and
+    sets up layout and widgets.
+    """
+
     def __init__(self):
         super().__init__()
         
@@ -100,6 +109,13 @@ class PortfolioApp(QWidget):
         self.price_input.setText(str(price))
         self.price_input.setPlaceholderText('per unit')
 
+    """
+    Updates the price input field based on the selected asset.
+
+    Retrieves the price of the selected asset from the asset_prices dictionary
+    and displays it in the price_input field.
+    """
+
     def add_asset(self):
         name = self.name_input.currentText()
         quantity = int(self.quantity_input.text()) * 10
@@ -120,6 +136,13 @@ class PortfolioApp(QWidget):
         else:
             QMessageBox.warning(self, "Input Error", "Please enter valid asset details")
 
+    """
+    Handles adding a new asset to the portfolio.
+
+    Validates the input data and adds the asset to the portfolio. If the data
+    is invalid, it displays an error message.
+    """
+
     def remove_asset(self):
         name = self.name_input.currentText()
         quantity = int(self.quantity_input.text()) * 10
@@ -138,15 +161,35 @@ class PortfolioApp(QWidget):
         else:
             QMessageBox.warning(self, "Input Error", "Please enter valid asset details")
 
+    """
+    Handles removing an asset from the portfolio.
+
+    Removes the specified asset from the portfolio. If the asset is not found,
+    it displays an error message.
+    """
 
     def update_portfolio_display(self):
         self.portfolio_display.setPlainText(str(self.portfolio))
+
+    """
+    Updates the display of the portfolio in the user interface.
+
+    Sets the text area to show the current state of the portfolio.
+    """
 
     def log_history(self, message):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         current_text = self.history_display.toPlainText()
         new_text = f"{current_text}\n{current_time} - {message}" if current_text else f"{current_time} - {message}"
         self.history_display.setPlainText(new_text)
+
+    """
+    Logs a message to the history display with a timestamp.
+
+    This method retrieves the current time, formats it as a string, and appends
+    the provided message to the history display. Each log entry is prefixed with
+    the current date and time, ensuring that all logged messages are timestamped.
+    """
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
