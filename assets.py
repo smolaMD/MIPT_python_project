@@ -4,7 +4,7 @@ import logging
 from tinkoff.invest.services import InstrumentsService
 from tinkoff.invest.utils import quotation_to_decimal
 
-TOKEN = 'token'
+TOKEN = 't.WfWkdeacZcm_gc3LD65QnzaA6EjmaB9netijeL6_SLC8r-m8H2l7wwzPpc42fA6q5QGPo50HEv8XDShwQ8Aynw'
 
 logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def GetFigi(ticker : str):
 Get asset's FIGI by it's ticker
 """
 
-def get_price_by_figi(figi_name):
+def get_price_by_figi(figi_name: str):
     with Client(TOKEN) as client:
       request = client.market_data.get_order_book(figi=figi_name, depth=1)
       price_Q = request.last_price

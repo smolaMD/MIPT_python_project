@@ -1,198 +1,127 @@
-import sys
-from main import Asset, Stock, Currency, Obligation, StockPortfolio
-from assets import SBER, AFLT, MGNT, GMKN, VKCO, YDEX, OZON, ROSN, AMZN, AAPL, MSFT, TSLA, NVDA, INTC, NFLX, MOEX, VTBR, CSCO, ADBE, PYPL, TCSG
-from datetime import datetime
-from PyQt6.QtWidgets import (
-    QApplication,
-    QComboBox,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QTextEdit,
-    QMessageBox,
-    QHBoxLayout
-)
+class Asset:
+    """
+    Represents a financial asset.
+    """
+    def __init__(self, name: str, quantity: int, price_per_unit: float):
+        self.name = name
+        self.quantity = quantity
+        self.price_per_unit = price_per_unit
 
-class PortfolioApp(QWidget):
+    def price(self):
+        return self.quantity * self.price_per_unit
+    
+    """
+    Calculates the total price of the asset based on its quantity and price per unit.
 
     """
-    Initializes an instance of the PortfolioApp class.
 
-    Sets up the user interface for managing a stock portfolio, including inputs
-    for stock names, prices, and quantities. Initializes the portfolio and
-    sets up layout and widgets.
+    def __str__(self):
+        return f'{self.name}: {self.quantity} units - {self.price_per_unit} per unit'
+
+    def __eq__(self, other):
+        if isinstance(other, Asset):
+            return ((self.name == other.name) and (self.quantity == other.quantity) and (self.price_per_unit == other.price_per_unit))
+        return False
+
+class Stock(Asset):
+
+    """
+    Represents a stock asset, inheriting from Asset.
+    """
+
+    def __init__(self, name: str, quantity: int, price_per_unit: float):
+        super().__init__(name, quantity, price_per_unit)
+
+    def __str__(self):
+        return f'{self.name}: {self.quantity} units - {self.price_per_unit} per unit'
+
+class Obligation(Asset):
+    """
+    Represents a bond or obligation asset, inheriting from Asset.
+    """
+
+    def __init__(self, name: str, quantity: int, price_per_unit: float, interest_rate: float, maturity_date: float):
+        super().__init__(name, quantity, price_per_unit)
+        self.interest_rate = interest_rate
+        self.maturity_date = maturity_date
+    
+    def total_interest(self):
+        return self.price() * (self.interest_rate / 100)
+
+    """
+        Calculates the total interest earned from the obligation.
+    """
+
+class Currency(Asset):
+
+    """
+    Represents a currency asset, inheriting from Asset.
+    """
+
+    def __init__(self, name: str, quantity: int, price_per_unit: float):
+        super().__init__(name, quantity, price_per_unit)
+
+
+def convert(self, target_currency : Currency):
+    exchange_rate = target_currency.price_per_unit / self.price_per_unit
+    converted_amount = self.quantity * exchange_rate
+    return converted_amount, target_currency.name
+
+"""
+Converts the amount of this currency to a target currency based on the exchange rate.
+"""
+
+class StockPortfolio:
+
+    """
+    Represents a portfolio of stocks.
     """
 
     def __init__(self):
-        super().__init__()
-        
-        self.portfolio = StockPortfolio()
-        
-        self.setWindowTitle("Stock Portfolio Manager")
-        self.setGeometry(100, 100, 400, 400)
+        self.assets = []
 
-        main_layout = QHBoxLayout()
-
-        left_layout = QVBoxLayout()
-
-        self.name_input = QComboBox(self)
-        self.name_input.addItems(["SBER", "AFLT", "MGNT", "GMKN", "VKCO", "YDEX", "OZON", "ROSN", "AMZN", "AAPL", "MSFT", "TSLA", "NVDA", "INTC", "NFLX", "MOEX", "VTBR", "CSCO", "ADBE", "PYPL", "TCSG"])
-        left_layout.addWidget(self.name_input)
-
-        self.asset_prices = {
-            "SBER": SBER,
-            "AFLT": AFLT,
-            "MGNT": MGNT,
-            "GMKN": GMKN,
-            "VKCO": VKCO,
-            "YDEX": YDEX,
-            "OZON": OZON,
-            "ROSN": ROSN,
-            "AMZN": AMZN,
-            "AAPL": AAPL,
-            "MSFT": MSFT,
-            "TSLA": TSLA,
-            "NVDA": NVDA,
-            "INTC": INTC,
-            "NFLX": NFLX,
-            "MOEX": MOEX,
-            "VTBR": VTBR,
-            "CSCO": CSCO,
-            "ADBE": ADBE,
-            "PYPL": PYPL,
-            "TCSG": TCSG
-        }
-
-        self.price_input = QLineEdit(self)
-        self.price_input.setPlaceholderText("Price per Unit")
-        self.price_input.setReadOnly(True)
-        left_layout.addWidget(self.price_input)
-
-        self.quantity_input = QLineEdit(self)
-        self.quantity_input.setPlaceholderText("Number of lots (1 lot = 10 stocks)")
-        left_layout.addWidget(self.quantity_input)
-
-        self.name_input.currentIndexChanged.connect(self.update_price)
-
-        self.add_button = QPushButton("Add Asset", self)
-        self.add_button.clicked.connect(self.add_asset)
-        left_layout.addWidget(self.add_button)
-
-        self.remove_button = QPushButton("Remove Asset", self)
-        self.remove_button.clicked.connect(self.remove_asset)
-        left_layout.addWidget(self.remove_button)
-
-        self.portfolio_display = QTextEdit(self)
-        self.portfolio_display.setReadOnly(True)
-        left_layout.addWidget(self.portfolio_display)
-
-        main_layout.addLayout(left_layout)
-
-        right_layout = QVBoxLayout()
-
-        self.history_display = QTextEdit(self)
-        self.history_display.setReadOnly(True)
-        right_layout.addWidget(QLabel("History of Requests:"))
-        right_layout.addWidget(self.history_display)
-
-        main_layout.addLayout(right_layout)
-
-        self.setLayout(main_layout)
-
-        self.update_price()
-
-    def update_price(self):
-        name = self.name_input.currentText()
-        price = self.asset_prices.get(name, 0.0)
-        self.price_input.setText(str(price))
-        self.price_input.setPlaceholderText('per unit')
+    def add_asset(self, asset: Stock):
+        for i in range(len(self.assets)):
+            if self.assets[i].name == asset.name:
+                self.assets[i].quantity += asset.quantity
+                return
+        self.assets.append(asset)
 
     """
-    Updates the price input field based on the selected asset.
+    Adds a stock asset to the portfolio. If an asset with the same name already exists,
+    updates its quantity.
+    """
+  
+    def remove_asset(self, asset: Stock):
+        for i in range(len(self.assets)):
+            if self.assets[i].name == asset.name:
+                if self.assets[i].quantity > asset.quantity:
+                    self.assets[i].quantity -= asset.quantity
+                elif self.assets[i].quantity < asset.quantity:
+                    print("Not enough assets to sell")
+                elif self.assets[i].quantity == asset.quantity:
+                    self.assets.remove(asset)
+                return
+            
+    """
+    Removes a stock asset from the portfolio. If not enough assets are available,
+    an error message is printed.
+    """          
 
-    Retrieves the price of the selected asset from the asset_prices dictionary
-    and displays it in the price_input field.
+    def portfolio_price(self):
+        portfolio_price = 0
+        for i in range(len(self.assets)):
+            portfolio_price += self.assets[i].quantity * self.assets[i].price_per_unit
+        return portfolio_price
+    
+    """
+        Calculates the total price of all assets in the portfolio.
     """
 
-    def add_asset(self):
-        name = self.name_input.currentText()
-        quantity = int(self.quantity_input.text()) * 10
-
-        if name and quantity > 0:
-            try:
-                price_per_unit = float(self.price_input.text())
-        
-                asset = Stock(name, quantity, price_per_unit)
-                self.portfolio.add_asset(asset)
-        
-                self.update_portfolio_display()
-                self.log_history(f"Added {quantity} shares of {name} at {price_per_unit} each.")
-
-            except:
-                QMessageBox.warning(self, "Error", "Please enter valid asset details")
-
-        else:
-            QMessageBox.warning(self, "Input Error", "Please enter valid asset details")
-
-    """
-    Handles adding a new asset to the portfolio.
-
-    Validates the input data and adds the asset to the portfolio. If the data
-    is invalid, it displays an error message.
-    """
-
-    def remove_asset(self):
-        name = self.name_input.currentText()
-        quantity = int(self.quantity_input.text()) * 10
-
-        if name and quantity > 0:
-            try:
-                asset = Stock(name, quantity, 0)
-                self.portfolio.remove_asset(asset)
-        
-                self.update_portfolio_display()
-                self.log_history(f"Removed {quantity} shares of {name}.")
-
-            except:
-                QMessageBox.warning(self, "Error", "Please enter valid asset details")
-
-        else:
-            QMessageBox.warning(self, "Input Error", "Please enter valid asset details")
-
-    """
-    Handles removing an asset from the portfolio.
-
-    Removes the specified asset from the portfolio. If the asset is not found,
-    it displays an error message.
-    """
-
-    def update_portfolio_display(self):
-        self.portfolio_display.setPlainText(str(self.portfolio))
-
-    """
-    Updates the display of the portfolio in the user interface.
-
-    Sets the text area to show the current state of the portfolio.
-    """
-
-    def log_history(self, message):
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        current_text = self.history_display.toPlainText()
-        new_text = f"{current_text}\n{current_time} - {message}" if current_text else f"{current_time} - {message}"
-        self.history_display.setPlainText(new_text)
-
-    """
-    Logs a message to the history display with a timestamp.
-
-    This method retrieves the current time, formats it as a string, and appends
-    the provided message to the history display. Each log entry is prefixed with
-    the current date and time, ensuring that all logged messages are timestamped.
-    """
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = PortfolioApp()
-    window.show()
-    sys.exit(app.exec())
+    def __str__(self):
+        portfolio_str = "Your portfolio:\n"
+        for i in range(len(self.assets)):
+            portfolio_str += self.assets[i].__str__()
+            portfolio_str += "\n"
+        portfolio_str += f'Total price of portfolio: {round(self.portfolio_price(), 2)}'
+        return portfolio_str
